@@ -1,0 +1,205 @@
+kind: Ingress
+apiVersion: networking.k8s.io/v1beta1
+metadata:
+  name: app-ingress
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /
+            backend:
+              serviceName: app-svc
+              servicePort: 8080
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: app-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: app
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: app-deploy
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: app
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      containers:
+        - name: spring-boot-example
+          image: isaryo13/spring-boot-example:1.0.0
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: 'jdbc:mysql://mysql-svc:3306/springdb?useUnicode=yes&characterEncoding=UTF-8'
+            - name: SPRING_DATASOURCE_USERNAME
+              value: 'spring'
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: 'Password123'
+            - name: SPRING_REDIS_HOST
+              value: 'redis-svc'
+            - name: SPRING_REDIS_PORT
+              value: '6379'
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: mysql-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: mysql
+  ports:
+    - name: mysql
+      protocol: TCP
+      port: 3306
+      targetPort: 3306
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: mysql-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:5.7.29
+          ports:
+            - name: mysql
+              containerPort: 3306
+          env:
+            - name: MYSQL_ALLOW_EMPTY_PASSWORD
+              value: '1'
+            - name: MYSQL_DATABASE
+              value: 'springdb'
+            - name: MYSQL_USER
+              value: 'spring'
+            - name: MYSQL_PASSWORD
+              value: 'Password123'
+          volumeMounts:
+            - name: data-volume
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: mysql-pvc
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: mysql-pvc
+spec:
+  storageClassName: mysql
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: mysql-pv
+spec:
+  storageClassName: mysql
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    type: DirectoryOrCreate
+    path: /data/mysql
+  persistentVolumeReclaimPolicy: Delete
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: redis-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: redis
+  ports:
+    - name: redis
+      protocol: TCP
+      port: 6379
+      targetPort: 6379
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: redis-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:4.0.10
+          ports:
+            - name: redis
+              containerPort: 6379
+          volumeMounts:
+            - name: data-volume
+              mountPath: /data/redis
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: redis-pvc
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: redis-pvc
+spec:
+  storageClassName: redis
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: redis-pv
+spec:
+  storageClassName: redis
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    type: DirectoryOrCreate
+    path: /data/redis
+  persistentVolumeReclaimPolicy: Delete

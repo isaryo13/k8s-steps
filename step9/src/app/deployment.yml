@@ -1,0 +1,51 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: app-deploy
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: app
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      containers:
+        - name: spring-boot-example
+          image: isaryo13/spring-boot-example:latest
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: 'jdbc:mysql://mysql-svc:3306/springdb?useUnicode=yes&characterEncoding=UTF-8'
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_USER
+                  optional: false
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_PASSWORD
+                  optional: false
+            - name: SPRING_REDIS_HOST
+              value: 'redis-svc'
+            - name: SPRING_REDIS_PORT
+              value: '6379'
+            - name: RUN_ARGS
+              value: '--spring.config.location=/config/application.properties'
+          volumeMounts:
+            - name: config-volume
+              mountPath: /config
+      volumes:
+        - name: config-volume
+          configMap:
+            name: spring-config
+            items:
+              - key: application.properties
+                path: application.properties

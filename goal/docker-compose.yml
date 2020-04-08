@@ -1,0 +1,39 @@
+version: '3.7'
+
+services:
+
+  app:
+    image: isaryo13/spring-boot-example:latest
+    environment:
+      SPRING_DATASOURCE_URL: 'jdbc:mysql://mysql:3306/springdb?useUnicode=yes&characterEncoding=UTF-8'
+      SPRING_DATASOURCE_USERNAME: spring
+      SPRING_DATASOURCE_PASSWORD: Password123
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+    ports:
+      - 8080:8080
+    depends_on:
+      - mysql
+      - redis
+    restart: always
+
+  mysql:
+    image: mysql:5.7.29
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+      MYSQL_DATABASE: springdb
+      MYSQL_USER: spring
+      MYSQL_PASSWORD: Password123
+    ports:
+      - 3306:3306
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    restart: always
+
+  redis:
+    image: redis:4.0.10
+    ports:
+      - 6379:6379
+    volumes:
+      - ./data/redis:/data/redis
+    restart: always

@@ -1,0 +1,20 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: mysql-pod
+spec:
+  containers:
+    - name: mysql
+      image: mysql:5.7.29
+      ports:
+        - name: mysql
+          containerPort: 3306
+      env:
+        - name: MYSQL_ALLOW_EMPTY_PASSWORD
+          value: '1'
+        - name: MYSQL_DATABASE
+          value: 'springdb'
+        - name: MYSQL_USER
+          value: 'spring'
+        - name: MYSQL_PASSWORD
+          value: 'Password123'

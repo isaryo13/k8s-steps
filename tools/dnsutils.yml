@@ -1,0 +1,14 @@
+# https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/
+kind: Pod
+apiVersion: v1
+metadata:
+  name: dnsutils
+spec:
+  containers:
+    - name: dnsutils
+      image: gcr.io/kubernetes-e2e-test-images/dnsutils:1.3
+      imagePullPolicy: IfNotPresent
+      command:
+        - sleep
+        - "3600"
+  restartPolicy: Always

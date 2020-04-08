@@ -1,0 +1,30 @@
+kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+namespace: spring-boot-example
+resources:
+  - ./namespace.yml
+  - ./app/ingress.yml
+  - ./app/service.yml
+  - ./app/deployment.yml
+  - ./mysql/service.yml
+  - ./mysql/deployment.yml
+  - ./mysql/storage.yml
+  - ./redis/service.yml
+  - ./redis/deployment.yml
+  - ./redis/storage.yml
+images:
+  - name: isaryo13/spring-boot-example
+    newTag: '1.0.0'
+  - name: mysql
+    newTag: '5.7.29'
+  - name: redis
+    newTag: '4.0.10'
+configMapGenerator:
+  - name: spring-config
+    files:
+      - ./app/application.properties
+secretGenerator:
+  - name: mysql-secret
+    literals:
+      - MYSQL_USER=spring
+      - MYSQL_PASSWORD=Password123

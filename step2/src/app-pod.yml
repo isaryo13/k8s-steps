@@ -1,0 +1,24 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: app-pod
+  labels:
+    app: app
+spec:
+  containers:
+    - name: app
+      image: isaryo13/spring-boot-example:latest
+      ports:
+        - name: http
+          containerPort: 8080
+      env:
+        - name: SPRING_DATASOURCE_URL
+          value: 'jdbc:mysql://mysql-svc:3306/springdb?useUnicode=yes&characterEncoding=UTF-8'
+        - name: SPRING_DATASOURCE_USERNAME
+          value: 'spring'
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: 'Password123'
+        - name: SPRING_REDIS_HOST
+          value: 'redis-svc'
+        - name: SPRING_REDIS_PORT
+          value: '6379'
